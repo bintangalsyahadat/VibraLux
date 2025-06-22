@@ -1,14 +1,68 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:padding="24dp"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/tvDetail"
-        android:text="Memuat data..."
-        android:textSize="18sp"
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-</LinearLayout>
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvDeviceId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Device ID:"
+            android:textStyle="bold"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tvLampStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lampu: ?"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:paddingBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mode Kontrol:"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/spinnerMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Manual Control -->
+        <Switch
+            android:id="@+id/switchManual"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Saklar Manual"
+            android:layout_marginTop="16dp" />
+
+        <!-- Schedule Control -->
+        <TextView
+            android:id="@+id/tvScheduleLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Jadwal:"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:id="@+id/tvScheduleInline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Klik untuk atur jadwal"
+            android:textColor="@android:color/holo_blue_dark"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"/>
+
+
+    </LinearLayout>
+</ScrollView>

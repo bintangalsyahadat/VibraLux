@@ -18,14 +18,16 @@ class DeviceAdapter(private val context: Context, private val list: List<Device>
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val inflater = LayoutInflater.from(context)
-        val view = convertView ?: inflater.inflate(android.R.layout.simple_list_item_2, parent, false)
+        val view = convertView ?: inflater.inflate(R.layout.item_device, parent, false)
 
         val device = list[position]
-        val tv1 = view.findViewById<TextView>(android.R.id.text1)
-        val tv2 = view.findViewById<TextView>(android.R.id.text2)
+        val tvName = view.findViewById<TextView>(R.id.tvDeviceName)
+        val tvSsid = view.findViewById<TextView>(R.id.tvDeviceSsid)
+        val tvStatus = view.findViewById<TextView>(R.id.tvDeviceStatus)
 
-        tv1.text = "ID: ${device.id}"
-        tv2.text = "Status: ${device.status}"
+        tvName.text = "ID: ${device.id}"
+        tvStatus.text = "Status: ${device.status}"
+        tvStatus.setTextColor(if (device.status == "connected") context.getColor(android.R.color.holo_green_dark) else context.getColor(android.R.color.holo_red_dark))
 
         view.setOnClickListener {
             val intent = Intent(context, DeviceDetailActivity::class.java)
@@ -35,4 +37,5 @@ class DeviceAdapter(private val context: Context, private val list: List<Device>
 
         return view
     }
+
 }
