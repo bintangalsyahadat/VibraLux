@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "661695021105",
+    "project_id": "vibralux-f655c",
+    "storage_bucket": "vibralux-f655c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:661695021105:android:9f1218923d70dc3a3b9510",
+        "android_client_info": {
+          "package_name": "com.vibralux"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNlT8xwJKVmj3X7wR96jRTtsp-WskxvtY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

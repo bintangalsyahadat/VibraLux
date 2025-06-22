@@ -1,20 +1,41 @@
 package com.vibralux
 
+import Device
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import com.google.firebase.database.*
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var deviceListView: ListView
+    private val deviceList = mutableListOf<Device>()
+    private lateinit var adapter: DeviceAdapter
+    private lateinit var database: DatabaseReference
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+
+        deviceListView = findViewById(R.id.deviceListView)
+        adapter = DeviceAdapter(this, deviceList)
+        deviceListView.adapter = adapter
+
+        database = FirebaseDatabase.getInstance().getReference("devices")
+
+        database.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                deviceList.clear()
+                for (child in snapshot.children) {
+                    val device = child.getValue(Device::class.java)
+                    if (device != null) deviceList.add(device)
+                }
+                adapter.notifyDataSetChanged()
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Log error
+            }
+        })
     }
 }
