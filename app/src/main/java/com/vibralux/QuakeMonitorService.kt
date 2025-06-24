@@ -69,10 +69,17 @@ class QuakeMonitorService : Service() {
             getSystemService(NotificationManager::class.java).createNotificationChannel(chan)
         }
 
+        val intent = Intent(this, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, intent, PendingIntent.FLAG_IMMUTABLE
+        )
+
         return Notification.Builder(this, channelId)
             .setContentTitle("Deteksi Gempa Aktif")
             .setContentText("Aplikasi memantau gempa secara realtime")
             .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
             .build()
     }
 
@@ -92,12 +99,18 @@ class QuakeMonitorService : Service() {
             manager.createNotificationChannel(channel)
         }
 
+        val intent = Intent(this, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, intent, PendingIntent.FLAG_IMMUTABLE
+        )
+
         val notif = NotificationCompat.Builder(this, channelId)
             .setContentTitle("🚨 Peringatan Gempa!")
             .setContentText("Sensor mendeteksi getaran gempa bumi. Segera evakuasi!")
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setContentIntent(pendingIntent)
             .setAutoCancel(false)
             .setOngoing(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
