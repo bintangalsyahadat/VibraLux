@@ -22,7 +22,6 @@ class DeviceAdapter(private val context: Context, private val list: List<Device>
 
         val device = list[position]
         val tvName = view.findViewById<TextView>(R.id.tvDeviceName)
-        val tvSsid = view.findViewById<TextView>(R.id.tvDeviceSsid)
         val tvStatus = view.findViewById<TextView>(R.id.tvDeviceStatus)
 
         tvName.text = "ID: ${device.id}"
