@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 
@@ -57,6 +58,13 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "Gagal ambil data", Toast.LENGTH_SHORT).show()
             }
         })
+
+        val btnAddDevice = findViewById<Button>(R.id.btnAddDevices)
+        btnAddDevice.setOnClickListener {
+            val intent = Intent(this, QRCodeScanActivity::class.java)
+            startActivity(intent)
+        }
+
     }
 
     override fun onResume() {
