@@ -8,7 +8,10 @@ import com.google.firebase.database.*
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 
 class MainActivity : AppCompatActivity() {
 
@@ -53,6 +56,70 @@ class MainActivity : AppCompatActivity() {
             override fun onCancelled(error: DatabaseError) {
                 Toast.makeText(this@MainActivity, "Gagal ambil data", Toast.LENGTH_SHORT).show()
             }
+        })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        showStopAlarmDialogIfQuakeDetected()
+    }
+
+    private fun showStopAlarmDialogIfQuakeDetected() {
+        val dbRef = FirebaseDatabase.getInstance().getReference("devices")
+
+        dbRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                var anyQuake = false
+                for (deviceSnap in snapshot.children) {
+                    val status = deviceSnap.child("vibralux/quake_status").getValue(Boolean::class.java)
+                    if (status == true) {
+                        anyQuake = true
+                        break
+                    }
+                }
+
+                if (anyQuake) {
+                    showStopAlarmDialog()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
+    }
+
+    private fun showStopAlarmDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Peringatan Gempa")
+        builder.setMessage("Gempa terdeteksi. Hentikan alarm?")
+        builder.setCancelable(false)
+        builder.setPositiveButton("Stop Alarm") { _, _ ->
+            stopAllAlarms()
+        }
+        builder.setNegativeButton("Batal", null)
+        builder.show()
+    }
+
+    private fun stopAllAlarms() {
+        val dbRef = FirebaseDatabase.getInstance().getReference("devices")
+
+        dbRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for (deviceSnap in snapshot.children) {
+                    val deviceId = deviceSnap.key ?: continue
+                    val deviceRef = dbRef.child(deviceId).child("vibralux")
+
+                    // Set quake_status = false dan force_stop = true
+                    deviceRef.child("quake_status").setValue(false)
+                    deviceRef.child("force_stop").setValue(true)
+
+                    // Handler untuk set force_stop = false setelah 5 menit
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        deviceRef.child("force_stop").setValue(false)
+                    }, 5 * 60 * 1000)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
         })
     }
 }
