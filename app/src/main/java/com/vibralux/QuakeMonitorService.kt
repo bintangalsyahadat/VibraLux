@@ -19,6 +19,8 @@ class QuakeMonitorService : Service() {
     private var alarmRingtone: Ringtone? = null
     private val handler = android.os.Handler()
     private val loopInterval = 50L
+    private val statusHandler = android.os.Handler()
+
 
     private val dbRef = FirebaseDatabase.getInstance().getReference("devices")
     private val quakeListener = object : ValueEventListener {
@@ -45,6 +47,7 @@ class QuakeMonitorService : Service() {
     override fun onCreate() {
         super.onCreate()
         dbRef.addValueEventListener(quakeListener)
+        statusHandler.post(statusRunnable)
     }
 
     override fun onDestroy() {
@@ -153,4 +156,26 @@ class QuakeMonitorService : Service() {
             handler.postDelayed(this, loopInterval)
         }
     }
+
+    private fun checkDeviceStatus() {
+        val now = System.currentTimeMillis()
+
+        dbRef.get().addOnSuccessListener { snapshot ->
+            for (deviceSnap in snapshot.children) {
+                val deviceId = deviceSnap.key ?: continue
+                val lastSeen = deviceSnap.child("last_seen").getValue(Long::class.java) ?: continue
+
+                val status = if (now - lastSeen <= 60_000) "connected" else "disconnected"
+                dbRef.child(deviceId).child("status").setValue(status)
+            }
+        }
+    }
+
+    private val statusRunnable = object : Runnable {
+        override fun run() {
+            checkDeviceStatus()
+            statusHandler.postDelayed(this, 30_000) // setiap 30 detik
+        }
+    }
+
 }
