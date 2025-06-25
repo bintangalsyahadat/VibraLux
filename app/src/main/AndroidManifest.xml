@@ -27,7 +27,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".DeviceListActivity" />
         <activity android:name=".DeviceDetailActivity" />
         <service
             android:name=".QuakeMonitorService"

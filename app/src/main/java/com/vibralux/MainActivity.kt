@@ -8,6 +8,7 @@ import com.google.firebase.database.*
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
 
@@ -50,7 +51,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                // Log error
+                Toast.makeText(this@MainActivity, "Gagal ambil data", Toast.LENGTH_SHORT).show()
             }
         })
     }

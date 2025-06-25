@@ -23,10 +23,18 @@ class DeviceAdapter(private val context: Context, private val list: List<Device>
         val device = list[position]
         val tvName = view.findViewById<TextView>(R.id.tvDeviceName)
         val tvStatus = view.findViewById<TextView>(R.id.tvDeviceStatus)
+        val statusDot = view.findViewById<View>(R.id.statusDot)
 
-        tvName.text = "ID: ${device.id}"
-        tvStatus.text = "Status: ${device.status}"
-        tvStatus.setTextColor(if (device.status == "connected") context.getColor(android.R.color.holo_green_dark) else context.getColor(android.R.color.holo_red_dark))
+        tvName.text = "VibraLux - ${device.id}"
+        tvStatus.text = device.status
+
+        if (device.status == "connected") {
+            tvStatus.setTextColor(context.getColor(android.R.color.black))
+            statusDot.setBackgroundResource(R.drawable.green_circle)
+        } else {
+            tvStatus.setTextColor(context.getColor(android.R.color.black))
+            statusDot.setBackgroundResource(R.drawable.red_circle)
+        }
 
         view.setOnClickListener {
             val intent = Intent(context, DeviceDetailActivity::class.java)
@@ -36,5 +44,6 @@ class DeviceAdapter(private val context: Context, private val list: List<Device>
 
         return view
     }
+
 
 }
