@@ -1,7 +1,10 @@
 package com.vibralux
 
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -43,9 +46,10 @@ class WifiSetupActivity : AppCompatActivity() {
     }
 
     private fun sendWifiCredentialsToESP(ssid: String, password: String) {
-        val json = JSONObject()
-        json.put("ssid", ssid)
-        json.put("password", password)
+        val json = JSONObject().apply {
+            put("ssid", ssid)
+            put("password", password)
+        }
 
         val mediaType = "application/json".toMediaType()
         val body = json.toString().toRequestBody(mediaType)
@@ -68,15 +72,36 @@ class WifiSetupActivity : AppCompatActivity() {
                 runOnUiThread {
                     if (response.isSuccessful && resStr.contains("connected")) {
                         val deviceId = extractDeviceId(resStr)
-                        goToDetail(deviceId)
+                        disconnectFromESP {
+                            goToDetail(deviceId)
+                        }
                     } else {
                         showErrorDialog("ESP gagal terhubung ke WiFi rumah.")
                     }
                 }
             }
-
         })
     }
+
+    private fun disconnectFromESP(onDisconnected: () -> Unit) {
+        val connectivityManager = getSystemService(ConnectivityManager::class.java)
+
+        // Untuk Android 6+ (API 23+) gunakan ini
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            connectivityManager.bindProcessToNetwork(null)
+        } else {
+            @Suppress("DEPRECATION")
+            ConnectivityManager.setProcessDefaultNetwork(null)
+        }
+
+        Toast.makeText(this, "Terputus dari jaringan ESP", Toast.LENGTH_SHORT).show()
+
+        // Tunggu sedikit agar benar-benar putus, lalu lanjut
+        Handler(mainLooper).postDelayed({
+            onDisconnected()
+        }, 1500)
+    }
+
 
     private fun extractDeviceId(response: String): String {
         // Asumsikan format respon JSON dari ESP seperti:
