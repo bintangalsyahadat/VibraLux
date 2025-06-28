@@ -37,9 +37,18 @@ class DeviceAdapter(private val context: Context, private val list: List<Device>
         }
 
         view.setOnClickListener {
-            val intent = Intent(context, DeviceDetailActivity::class.java)
-            intent.putExtra("deviceId", device.id)
-            context.startActivity(intent)
+            if (device.status == "connected") {
+                val intent = Intent(context, DeviceMenuActivity::class.java)
+                intent.putExtra("deviceId", device.id)
+                context.startActivity(intent)
+            } else {
+                // Tampilkan alert jika tidak terkoneksi
+                android.app.AlertDialog.Builder(context)
+                    .setTitle("Device Disconnected")
+                    .setMessage("This device is currently offline.\nYou can't control it until it's reconnected.")
+                    .setPositiveButton("OK", null)
+                    .show()
+            }
         }
 
         return view

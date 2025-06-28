@@ -39,6 +39,9 @@
         </activity>
 
         <activity android:name=".DeviceDetailActivity" />
+        <activity android:name=".DeviceMenuActivity" />
+        <activity android:name=".DeviceConfigActivity" />
+
         <service
             android:name=".QuakeMonitorService"
             android:exported="false"
@@ -51,6 +54,8 @@
             android:name=".MyCaptureActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+
+
 
     </application>
 

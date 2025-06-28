@@ -1,68 +1,191 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Warna latar biru tua -->
     <LinearLayout
-        android:orientation="vertical"
-        android:padding="16dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/primary"
+        android:gravity="top">
 
-        <TextView
-            android:id="@+id/tvDeviceId"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Device ID:"
-            android:textStyle="bold"
-            android:textSize="18sp" />
-
-        <TextView
-            android:id="@+id/tvLampStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Lampu: ?"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:paddingBottom="16dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Mode Kontrol:"
-            android:textStyle="bold" />
-
-        <Spinner
-            android:id="@+id/spinnerMode"
+        <!-- Logo dan nama aplikasi -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <!-- Manual Control -->
-        <Switch
-            android:id="@+id/switchManual"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Saklar Manual"
-            android:layout_marginTop="16dp" />
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp">
 
-        <!-- Schedule Control -->
-        <TextView
-            android:id="@+id/tvScheduleLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Jadwal:"
-            android:textStyle="bold"
-            android:layout_marginTop="16dp"/>
+            <!--            <ImageView-->
+            <!--                android:id="@+id/logo"-->
+            <!--                android:layout_width="32dp"-->
+            <!--                android:layout_height="32dp"-->
+            <!--                android:src="@drawable/ic_vibralux_logo"-->
+            <!--                android:contentDescription="Logo" />-->
 
-        <TextView
-            android:id="@+id/tvScheduleInline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Klik untuk atur jadwal"
-            android:textColor="@android:color/holo_blue_dark"
-            android:padding="8dp"
-            android:clickable="true"
-            android:focusable="true"/>
-
-
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="VibraLux"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
-</ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@drawable/white_top_rounded"
+        android:padding="16dp"
+        android:layout_marginTop="70dp">
+
+        <!-- Info Box -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/rounded_card_dark"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/tvDeviceId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="VibraLux-A43329B3A3A0"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="● connected"
+                android:textColor="@android:color/holo_green_light"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/tvSSID"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SSID : -"
+                android:textColor="@android:color/white"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/tvLampStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Light Status : -"
+                android:textColor="@android:color/white"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <!-- Device Mode -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp">
+
+            <TextView
+                android:id="@+id/tvDeviceModeLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Device Mode"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+
+            <Spinner
+                android:id="@+id/spinnerMode"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="8dp" />
+        </LinearLayout>
+
+        <!-- Garis Pembatas -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#DDDDDD"/>
+
+        <!-- Manual Mode Switch -->
+        <LinearLayout
+            android:id="@+id/layoutManual"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Manual Switch"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchManual"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:minHeight="48dp"
+                android:minWidth="48dp"/>
+        </LinearLayout>
+
+        <!-- Schedule Controls -->
+        <LinearLayout
+            android:id="@+id/layoutSchedule"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp"
+            android:layout_marginTop="8dp">
+
+            <TextView
+                android:id="@+id/tvScheduleLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Schedule"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/tvScheduleInline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="18:00 - 05:00"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="16dp"
+                android:minHeight="48dp"
+                android:gravity="center_vertical"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- Garis Pembatas -->
+        <View
+            android:id="@+id/lastDivider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#DDDDDD"
+            android:layout_marginBottom="16dp" />
+    </LinearLayout>
+</FrameLayout>

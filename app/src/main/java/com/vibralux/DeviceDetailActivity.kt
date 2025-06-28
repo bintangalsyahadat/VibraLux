@@ -5,17 +5,23 @@ import android.os.Bundle
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
+import androidx.core.content.ContextCompat
 import com.google.firebase.database.*
 
 class DeviceDetailActivity : AppCompatActivity() {
 
     private lateinit var dbRef: DatabaseReference
     private lateinit var spinnerMode: Spinner
-    private lateinit var switchManual: Switch
+    private lateinit var switchManual: SwitchCompat
     private lateinit var tvDeviceId: TextView
     private lateinit var tvLampStatus: TextView
+    private lateinit var tvSSID: TextView
+    private lateinit var tvStatus: TextView
     private lateinit var tvScheduleInline: TextView
     private lateinit var tvScheduleLabel: TextView
+    private lateinit var layoutManual: LinearLayout
+    private lateinit var lastDivider: View
 
     private lateinit var deviceId: String
 
@@ -38,10 +44,14 @@ class DeviceDetailActivity : AppCompatActivity() {
         switchManual = findViewById(R.id.switchManual)
         tvDeviceId = findViewById(R.id.tvDeviceId)
         tvLampStatus = findViewById(R.id.tvLampStatus)
+        tvSSID = findViewById(R.id.tvSSID)
+        tvStatus = findViewById(R.id.tvStatus)
         tvScheduleInline = findViewById(R.id.tvScheduleInline)
         tvScheduleLabel = findViewById(R.id.tvScheduleLabel)
+        layoutManual = findViewById(R.id.layoutManual)
+        lastDivider = findViewById(R.id.lastDivider)
 
-        tvDeviceId.text = "Device ID: $deviceId"
+        tvDeviceId.text = "VibraLux-$deviceId"
 
         // Spinner setup
         spinnerMode.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, modeOptions)
@@ -58,9 +68,10 @@ class DeviceDetailActivity : AppCompatActivity() {
         // Manual switch
         switchManual.setOnCheckedChangeListener { _, isChecked ->
             dbRef.child("vibralux/controls/manual_status").setValue(isChecked)
+            updateSwitchStyle(isChecked)
         }
 
-        // Jadwal inline klik
+        // Schedule time picker
         tvScheduleInline.setOnClickListener {
             TimePickerDialog(this, { _, h1, m1 ->
                 hourFrom = h1
@@ -80,15 +91,19 @@ class DeviceDetailActivity : AppCompatActivity() {
             }, hourFrom, minuteFrom, true).show()
         }
 
-        // Load status awal
+        // Load data awal dari Firebase
         dbRef.child("vibralux").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val lampStatus = snapshot.child("lamp_status").getValue(Boolean::class.java) ?: false
-                tvLampStatus.text = if (lampStatus) "Lampu: NYALA" else "Lampu: MATI"
+                tvLampStatus.text = if (lampStatus) "Light Status : On" else "Light Status : Off"
 
-                val mode = snapshot.child("controls/mode").getValue(String::class.java)
-                val index = modeOptions.indexOf(mode ?: "auto")
+                val mode = snapshot.child("controls/mode").getValue(String::class.java) ?: "auto"
+                val index = modeOptions.indexOf(mode)
                 if (index != -1) spinnerMode.setSelection(index)
+
+                val manualStatus = snapshot.child("controls/manual_status").getValue(Boolean::class.java) ?: false
+                switchManual.isChecked = manualStatus
+                updateSwitchStyle(manualStatus)
 
                 val from = snapshot.child("controls/schedule/from")
                 hourFrom = from.child("hour").getValue(Int::class.java) ?: 0
@@ -103,25 +118,62 @@ class DeviceDetailActivity : AppCompatActivity() {
 
             override fun onCancelled(error: DatabaseError) {}
         })
+
+        // Load status koneksi & SSID
+        dbRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val status = snapshot.child("status").getValue(String::class.java) ?: "unknown"
+                tvStatus.text = if (status == "connected") "● connected" else "● disconnected"
+                tvStatus.setTextColor(
+                    if (status == "connected") getColor(android.R.color.holo_green_light)
+                    else getColor(android.R.color.holo_red_light)
+                )
+
+                if (status == "connected") {
+                    val ssid = snapshot.child("ssid").getValue(String::class.java) ?: "-"
+                    tvSSID.text = "SSID : $ssid"
+                    tvSSID.visibility = View.VISIBLE
+                } else {
+                    tvSSID.visibility = View.GONE
+                }
+
+                val ssid = snapshot.child("ssid").getValue(String::class.java) ?: "-"
+                tvSSID.text = "SSID : $ssid"
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
     }
 
     private fun updateModeUI(mode: String) {
         when (mode) {
             "auto" -> {
-                switchManual.visibility = View.GONE
+                layoutManual.visibility = View.GONE
                 tvScheduleInline.visibility = View.GONE
                 tvScheduleLabel.visibility = View.GONE
+                lastDivider.visibility = View.GONE
             }
             "manual" -> {
-                switchManual.visibility = View.VISIBLE
+                layoutManual.visibility = View.VISIBLE
                 tvScheduleInline.visibility = View.GONE
                 tvScheduleLabel.visibility = View.GONE
+                lastDivider.visibility = View.VISIBLE
             }
             "schedule" -> {
-                switchManual.visibility = View.GONE
+                layoutManual.visibility = View.GONE
                 tvScheduleInline.visibility = View.VISIBLE
                 tvScheduleLabel.visibility = View.VISIBLE
+                lastDivider.visibility = View.VISIBLE
             }
         }
+    }
+
+    private fun updateSwitchStyle(isChecked: Boolean) {
+        val white = ContextCompat.getColorStateList(this, R.color.white)
+        val primary = ContextCompat.getColorStateList(this, R.color.primary)
+        val gray = ContextCompat.getColorStateList(this, R.color.gray_light)
+
+        switchManual.thumbTintList = white
+        switchManual.trackTintList = if (isChecked) primary else gray
     }
 }
