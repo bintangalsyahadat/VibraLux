@@ -32,6 +32,9 @@ class DeviceDetailActivity : AppCompatActivity() {
 
     private val modeOptions = listOf("auto", "manual", "schedule")
 
+    private lateinit var vibraluxListener: ValueEventListener
+    private lateinit var statusListener: ValueEventListener
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_device_detail)
@@ -91,8 +94,8 @@ class DeviceDetailActivity : AppCompatActivity() {
             }, hourFrom, minuteFrom, true).show()
         }
 
-        // Load data awal dari Firebase
-        dbRef.child("vibralux").addListenerForSingleValueEvent(object : ValueEventListener {
+        // Realtime listener: Data kontrol dan lampu
+        vibraluxListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val lampStatus = snapshot.child("lamp_status").getValue(Boolean::class.java) ?: false
                 tvLampStatus.text = if (lampStatus) "Light Status : On" else "Light Status : Off"
@@ -117,10 +120,10 @@ class DeviceDetailActivity : AppCompatActivity() {
             }
 
             override fun onCancelled(error: DatabaseError) {}
-        })
+        }
 
-        // Load status koneksi & SSID
-        dbRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        // Realtime listener: Status koneksi & SSID
+        statusListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val status = snapshot.child("status").getValue(String::class.java) ?: "unknown"
                 tvStatus.text = if (status == "connected") "● connected" else "● disconnected"
@@ -136,13 +139,13 @@ class DeviceDetailActivity : AppCompatActivity() {
                 } else {
                     tvSSID.visibility = View.GONE
                 }
-
-                val ssid = snapshot.child("ssid").getValue(String::class.java) ?: "-"
-                tvSSID.text = "SSID : $ssid"
             }
 
             override fun onCancelled(error: DatabaseError) {}
-        })
+        }
+
+        dbRef.child("vibralux").addValueEventListener(vibraluxListener)
+        dbRef.addValueEventListener(statusListener)
     }
 
     private fun updateModeUI(mode: String) {
@@ -175,5 +178,11 @@ class DeviceDetailActivity : AppCompatActivity() {
 
         switchManual.thumbTintList = white
         switchManual.trackTintList = if (isChecked) primary else gray
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        dbRef.child("vibralux").removeEventListener(vibraluxListener)
+        dbRef.removeEventListener(statusListener)
     }
 }
