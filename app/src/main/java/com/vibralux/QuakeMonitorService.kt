@@ -27,8 +27,9 @@ class QuakeMonitorService : Service() {
         override fun onDataChange(snapshot: DataSnapshot) {
             var anyQuake = false
             for (deviceSnap in snapshot.children) {
-                val quakeStatus = deviceSnap.child("vibralux/quake_status").getValue(Boolean::class.java)
-                if (quakeStatus == true) {
+                val quakeStatus = deviceSnap.child("vibralux/quake_status").getValue(Boolean::class.java) == true
+                val isActive = deviceSnap.child("vibralux/active_quake_alarm").getValue(Boolean::class.java) == true
+                if (quakeStatus && isActive) {
                     anyQuake = true
                     break
                 }
@@ -165,7 +166,7 @@ class QuakeMonitorService : Service() {
                 val deviceId = deviceSnap.key ?: continue
                 val lastSeen = deviceSnap.child("last_seen").getValue(Long::class.java) ?: continue
 
-                val status = if (now - lastSeen <= 60_000) "connected" else "disconnected"
+                val status = if (now - lastSeen <= 120_000) "connected" else "disconnected"
                 dbRef.child(deviceId).child("status").setValue(status)
             }
         }
@@ -174,7 +175,7 @@ class QuakeMonitorService : Service() {
     private val statusRunnable = object : Runnable {
         override fun run() {
             checkDeviceStatus()
-            statusHandler.postDelayed(this, 30_000) // setiap 30 detik
+            statusHandler.postDelayed(this, 60_000) // setiap 60 detik
         }
     }
 
