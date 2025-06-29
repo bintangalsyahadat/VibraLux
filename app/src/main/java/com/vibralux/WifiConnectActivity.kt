@@ -1,94 +1,101 @@
 package com.vibralux
 
 import android.Manifest
-import android.content.*
-import android.net.wifi.WifiConfiguration
-import android.net.wifi.WifiManager
-import android.os.Build
+import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.net.wifi.WifiNetworkSpecifier
+import android.net.ConnectivityManager
 import android.os.Bundle
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 
 class WifiConnectActivity : AppCompatActivity() {
-
     private lateinit var ssid: String
     private lateinit var password: String
+    private lateinit var connectivityManager: ConnectivityManager
+    private var loadingDialog: AlertDialog? = null
 
-    private val wifiManager by lazy {
-        applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
+    private fun showLoadingDialog(message: String) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_loading, null)
+        dialogView.findViewById<TextView>(R.id.loadingText).text = message
+
+        loadingDialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+        loadingDialog?.show()
     }
 
-    private val wifiPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val allGranted = permissions.all { it.value }
-        if (allGranted) {
-            connectToESP()
-        } else {
-            Toast.makeText(this, "Izin diperlukan untuk menyambung ke WiFi", Toast.LENGTH_SHORT).show()
+    private fun hideLoadingDialog() {
+        loadingDialog?.dismiss()
+    }
+
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) connectToESP()
+        else {
+            Toast.makeText(this, "Izin WiFi dibutuhkan", Toast.LENGTH_SHORT).show()
             finish()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        showLoadingDialog("Menghubungkan ke Device...")
         ssid = intent.getStringExtra("esp_ssid") ?: ""
         password = intent.getStringExtra("esp_password") ?: ""
 
         if (ssid.isEmpty()) {
-            Toast.makeText(this, "Data SSID tidak ditemukan", Toast.LENGTH_SHORT).show()
-            finish()
-            return
+            Toast.makeText(this, "SSID tidak valid", Toast.LENGTH_SHORT).show()
+            finish(); return
         }
 
-        checkPermissionsAndConnect()
-    }
-
-    private fun checkPermissionsAndConnect() {
-        val neededPermissions = mutableListOf<String>()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            neededPermissions.add(Manifest.permission.NEARBY_WIFI_DEVICES)
-        } else {
-            neededPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
-        }
-
-        wifiPermissionLauncher.launch(neededPermissions.toTypedArray())
+        connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        permissionLauncher.launch(Manifest.permission.NEARBY_WIFI_DEVICES)
     }
 
     private fun connectToESP() {
-        if (!wifiManager.isWifiEnabled) {
-            Toast.makeText(this, "WiFi dinonaktifkan, mengaktifkan...", Toast.LENGTH_SHORT).show()
-            wifiManager.isWifiEnabled = true
-        }
+        val specifier = WifiNetworkSpecifier.Builder()
+            .setSsid(ssid)
+            .setWpa2Passphrase(password)
+            .build()
 
-        val wifiConfig = WifiConfiguration().apply {
-            SSID = "\"$ssid\""
-            preSharedKey = "\"$password\""
-        }
+        val request = NetworkRequest.Builder()
+            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .setNetworkSpecifier(specifier)
+            .build()
 
-        val netId = wifiManager.addNetwork(wifiConfig)
-        if (netId == -1) {
-            Toast.makeText(this, "Gagal menambahkan konfigurasi WiFi", Toast.LENGTH_SHORT).show()
-            finish()
-            return
-        }
-
-        wifiManager.disconnect()
-        wifiManager.enableNetwork(netId, true)
-        wifiManager.reconnect()
-
-        Toast.makeText(this, "Menyambung ke $ssid...", Toast.LENGTH_SHORT).show()
-
-        // Lanjut ke WifiSetupActivity setelah delay pendek
-        android.os.Handler().postDelayed({
-            val intent = Intent(this, WifiSetupActivity::class.java).apply {
-                putExtra("esp_ssid", ssid)
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                super.onAvailable(network)
+                connectivityManager.bindProcessToNetwork(network)
+                runOnUiThread {
+                    hideLoadingDialog()
+                    Toast.makeText(this@WifiConnectActivity, "Berhasil terhubung ke $ssid", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this@WifiConnectActivity, WifiSetupActivity::class.java).apply {
+                        putExtra("esp_ssid", ssid)
+                    }
+                    startActivity(intent)
+                    finish()
+                }
             }
-            startActivity(intent)
-            finish()
-        }, 5000) // delay 5 detik cukup aman untuk koneksi awal
+
+            override fun onUnavailable() {
+                super.onUnavailable()
+                runOnUiThread {
+                    Toast.makeText(this@WifiConnectActivity, "Gagal terhubung ke $ssid", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            }
+        }
+
+        connectivityManager.requestNetwork(request, callback)
     }
 }

@@ -12,15 +12,13 @@ import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.integration.android.IntentResult
 
 class QRCodeScanActivity : AppCompatActivity() {
-
     private val cameraPermission = Manifest.permission.CAMERA
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        if (isGranted) {
-            startQrScanner()
-        } else {
+        if (isGranted) startQrScanner()
+        else {
             Toast.makeText(this, "Izin kamera dibutuhkan", Toast.LENGTH_SHORT).show()
             finish()
         }
@@ -32,28 +30,22 @@ class QRCodeScanActivity : AppCompatActivity() {
     }
 
     private fun checkCameraPermissionAndStart() {
-        when {
-            ContextCompat.checkSelfPermission(this, cameraPermission) == PackageManager.PERMISSION_GRANTED -> {
-                startQrScanner()
-            }
-            shouldShowRequestPermissionRationale(cameraPermission) -> {
-                Toast.makeText(this, "Aplikasi memerlukan akses kamera untuk scan QR", Toast.LENGTH_SHORT).show()
-                requestPermissionLauncher.launch(cameraPermission)
-            }
-            else -> {
-                requestPermissionLauncher.launch(cameraPermission)
-            }
+        if (ContextCompat.checkSelfPermission(this, cameraPermission) == PackageManager.PERMISSION_GRANTED) {
+            startQrScanner()
+        } else {
+            requestPermissionLauncher.launch(cameraPermission)
         }
     }
 
     private fun startQrScanner() {
-        val integrator = IntentIntegrator(this)
-        integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
-        integrator.setPrompt("Arahkan kamera ke QR Code ESP")
-        integrator.setCameraId(0)
-        integrator.setBeepEnabled(true)
-        integrator.setBarcodeImageEnabled(false)
-        integrator.captureActivity = MyCaptureActivity::class.java
+        val integrator = IntentIntegrator(this).apply {
+            setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
+            setPrompt("Arahkan kamera ke QR Code ESP")
+            setCameraId(0)
+            setBeepEnabled(true)
+            setBarcodeImageEnabled(false)
+            captureActivity = MyCaptureActivity::class.java
+        }
         integrator.initiateScan()
     }
 
@@ -69,19 +61,35 @@ class QRCodeScanActivity : AppCompatActivity() {
     }
 
     private fun handleQrResult(qrText: String) {
-        val parts = qrText.split(";")
-        if (parts.size >= 2) {
-            val espSsid = parts[0]
-            val espPassword = parts[1]
-
-            val intent = Intent(this, WifiConnectActivity::class.java).apply {
-                putExtra("esp_ssid", espSsid)
-                putExtra("esp_password", espPassword)
-            }
-            startActivity(intent)
-        } else {
+        if (!qrText.startsWith("WIFI:")) {
             Toast.makeText(this, "Format QR tidak valid", Toast.LENGTH_SHORT).show()
+            finish(); return
         }
+
+        val cleaned = qrText.removePrefix("WIFI:").removeSuffix(";")
+        val parts = cleaned.split(";")
+
+        var ssid = ""
+        var password = ""
+
+        for (part in parts) {
+            when {
+                part.startsWith("S:") -> ssid = part.removePrefix("S:")
+                part.startsWith("P:") -> password = part.removePrefix("P:")
+            }
+        }
+
+        if (ssid.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "QR Code tidak mengandung SSID atau Password", Toast.LENGTH_SHORT).show()
+            finish(); return
+        }
+
+        val intent = Intent(this, WifiConnectActivity::class.java).apply {
+            putExtra("esp_ssid", ssid)
+            putExtra("esp_password", password)
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        startActivity(intent)
         finish()
     }
 }
