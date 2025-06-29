@@ -2,6 +2,8 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.VibraLux" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+         <item name="colorPrimary">@color/primary</item>
     </style>
+
+    <style name="Theme.VibraLux" parent="Base.Theme.VibraLux" />
 </resources>
